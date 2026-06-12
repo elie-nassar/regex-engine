@@ -1,0 +1,3 @@
+(library
+ (name regex_lib)
+ (public_name regex_engine.lib))

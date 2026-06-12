@@ -1,0 +1,11 @@
+_build/
+.merlin
+.dune/
+_opam/
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.vscode/
+*.swp
+*~
