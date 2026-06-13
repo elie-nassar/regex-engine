@@ -40,6 +40,6 @@ dot -Tpng dfa.dot -o dfa.png
 │   ├── dfa.ml
 │   ├── dune
 │   └── nfa.ml
-├── Readme.md
+├── README.md
 └── regex_engine.opam
 ```
