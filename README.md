@@ -14,6 +14,19 @@ dune build
 dune exec regex_engine
 ```
 
+## Example
+
+```ocaml
+let () = 
+  let dfa = regex_to_dfa (parse "((a|b)c)*") in
+  save_dfa_as_dot_file "dfa.dot" dfa
+```
+```bash
+dot -Tpng dfa.dot -o dfa.png
+```
+
+![](./dfa.png)
+
 ## Project structure
 
 ```bash
