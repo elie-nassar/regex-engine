@@ -32,32 +32,31 @@ let nfa_to_dfa nfa =
   let start_set = epsilon_closure nfa [nfa.start] in
   let start_dfa = get_or_create_state start_set in
   
-  let rec process_queue queue visited =
-    match queue with
-    | [] -> ()
-    | nfa_set :: rest ->
-        if List.mem nfa_set visited then
-          process_queue rest visited
-        else
-          let dfa_state = get_or_create_state nfa_set in
-          List.iter
-            (fun c ->
-              let new_nfa_set =
-                let moved = move nfa nfa_set c in
-                epsilon_closure nfa moved
-              in
-              if new_nfa_set <> [] then (
-                let new_dfa_state = get_or_create_state new_nfa_set in
-                new_transitions := !new_transitions @ [(dfa_state, c, new_dfa_state)];
-                process_queue (rest @ [new_nfa_set]) (visited @ [nfa_set])
-              ) else
-                process_queue (rest @ [new_nfa_set]) (visited @ [nfa_set])
-            )
-            nfa.alphabet;
-          process_queue rest (visited @ [nfa_set])
-  in
+  let worklist = ref [start_set] in
+  let visited = ref [] in
   
-  process_queue [start_set] [];
+  while !worklist <> [] do
+    let nfa_set = List.hd !worklist in
+    worklist := List.tl !worklist;
+    
+    if not (List.mem nfa_set !visited) then (
+      visited := nfa_set :: !visited;
+      let dfa_state = get_or_create_state nfa_set in
+      
+      List.iter (fun c ->
+        let moved = move nfa nfa_set c in
+        let new_nfa_set = epsilon_closure nfa moved in
+        
+        if new_nfa_set <> [] then (
+          let new_dfa_state = get_or_create_state new_nfa_set in
+          new_transitions := !new_transitions @ [(dfa_state, c, new_dfa_state)];
+          
+          if not (List.mem new_nfa_set !visited) && not (List.mem new_nfa_set !worklist) then
+            worklist := !worklist @ [new_nfa_set]
+        )
+      ) nfa.alphabet
+    )
+  done;
   
   let dfa_accepts =
     Hashtbl.fold
@@ -108,3 +107,30 @@ let dfa_match dfa input =
 let regex_match pattern input = 
   let dfa = regex_to_dfa (parse pattern) in
   dfa_match dfa input
+
+
+let save_dfa_as_dot_file filename dfa =
+  let oc = open_out filename in
+  let fprintf fmt = Printf.fprintf oc fmt in
+  fprintf "digraph dfa {\n";
+  fprintf "    rankdir=LR;\n";
+
+  if dfa.dfa_accepts <> [] then (
+    fprintf "    node [shape = doublecircle];";
+    List.iter (fun s -> fprintf " %d" s) dfa.dfa_accepts;
+    fprintf ";\n"
+  );
+
+  fprintf "    node [shape = circle];\n";
+  fprintf "    init [label=\"\", shape=none, width=0, height=0];\n";
+  fprintf "    init -> %d;\n" dfa.dfa_start;
+
+  List.iter (fun (from_state, char_sym, to_state) ->
+    fprintf "    %d -> %d [label=\"%s\"];\n" 
+      from_state 
+      to_state 
+      (String.make 1 char_sym)
+  ) dfa.dfa_transitions;
+
+  fprintf "}\n";
+  close_out oc
