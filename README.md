@@ -14,7 +14,7 @@ dune build
 dune exec regex_engine
 ```
 
-Project structure
+## Project structure
 
 ```bash
 .
