@@ -23,7 +23,7 @@ let () =
   test_parse "a(b|c)d";
   Printf.printf "\nAll tests completed!\n" *)
 
-let test_match pattern input = 
+(* let test_match pattern input = 
   try
     let ast = parse pattern in
     let dfa = regex_to_dfa ast in
@@ -59,4 +59,8 @@ let () =
   test_match "a(b|c)d" "abd";
   test_match "a(b|c)d" "acd";
   test_match "a(b|c)d" "ad";
-  Printf.printf "\nAll tests completed!\n"
+  Printf.printf "\nAll tests completed!\n" *)
+
+let () = 
+  let dfa = regex_to_dfa (parse "((a|b)c)*") in
+  save_dfa_as_dot_file "dfa.dot" dfa
